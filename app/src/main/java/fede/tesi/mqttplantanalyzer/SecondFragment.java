@@ -33,6 +33,7 @@ public class SecondFragment extends Fragment {
     private FragmentSecondBinding binding;
     public LinkedList<BtDisp> btList=new LinkedList<>();
     public BtRecyclerViewAdapter adapter;
+    BluetoothService service;
 
     @Override
     public View onCreateView(
@@ -77,7 +78,7 @@ public class SecondFragment extends Fragment {
         config.uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
         BluetoothService.init(config);
-        BluetoothService service = BluetoothService.getDefaultInstance();
+        service = BluetoothService.getDefaultInstance();
         service.setOnScanCallback(new BluetoothService.OnBluetoothScanCallback() {
             @Override
             public void onDeviceDiscovered(BluetoothDevice device, int rssi) {
@@ -100,9 +101,6 @@ public class SecondFragment extends Fragment {
             public void onStopScan() {
             }
         });
-
-        service.startScan(); // See also service.stopScan();
-
         service.setOnEventCallback(new BluetoothService.OnBluetoothEventCallback() {
             @Override
             public void onDataRead(byte[] buffer, int length) {
@@ -125,8 +123,9 @@ public class SecondFragment extends Fragment {
             public void onDataWrite(byte[] buffer) {
             }
         });
+        service.startScan(); // See also service.stopScan();
 
-        service.connect(device); // See also service.disconnect();
+        //service.connect(device); // See also service.disconnect();
 
         binding.buttonSecond.setOnClickListener(new View.OnClickListener() {
             @Override
