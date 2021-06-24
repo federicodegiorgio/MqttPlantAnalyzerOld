@@ -6,6 +6,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -16,8 +19,13 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class MyMqttService extends Service implements MqttCallback, IMqttActionListener {
 
@@ -167,6 +175,27 @@ public class MyMqttService extends Service implements MqttCallback, IMqttActionL
     public void messageArrived(String topic, MqttMessage message) throws Exception {
         String payload = new String(message.getPayload());
         Log.e("TAG", payload);
+        try {
+
+            JSONObject obj = new JSONObject(payload);
+            Log.e("LUMMMM",  obj.get("Luminosity").toString());
+            FirebaseDatabase database = FirebaseDatabase.getInstance("https://mqttplantanalyzer-default-rtdb.europe-west1.firebasedatabase.app/");
+            long now = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis());
+            Log.e("NOWWWWWWWWWWWWWWWWWWWWWWW",  String.valueOf(now));
+            //Long tsLong = System.currentTimeMillis()/1000;
+            String ts = String.valueOf(now);
+            DatabaseReference myRef = database.getReference("user/"+ts);
+            DatabaseReference timeref= myRef.child("timestamp");
+            DatabaseReference luxref= myRef.child("lux");
+            luxref.setValue(obj.get("Moisture"));
+            timeref.setValue(now);
+            Log.e("My App", obj.toString());
+
+        } catch (Throwable t) {
+            Log.e("My App", "Could not parse malformed JSON: \"" + payload + "\"");
+        }
+
+
         // do something
     }
 

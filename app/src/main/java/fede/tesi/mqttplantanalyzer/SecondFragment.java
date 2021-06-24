@@ -1,6 +1,6 @@
 package fede.tesi.mqttplantanalyzer;
 
-import android.bluetooth.BluetoothDevice;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,32 +8,45 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.utils.ColorTemplate;
+import com.github.mikephil.charting.utils.EntryXComparator;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothClassicService;
-import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothConfiguration;
-import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothService;
-import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothStatus;
-import com.google.android.material.snackbar.Snackbar;
-
-import java.util.Arrays;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import fede.tesi.mqttplantanalyzer.databinding.FragmentSecondBinding;
 
 public class SecondFragment extends Fragment {
 
     private FragmentSecondBinding binding;
-    public LinkedList<BtDisp> btList=new LinkedList<>();
-    public BtRecyclerViewAdapter adapter;
-    BluetoothService service;
+    LineChart lineChart;
+    LineData lineData;
+    List<Entry> entryList = new ArrayList<>();
+    private DatabaseReference mDatabase;
 
     @Override
     public View onCreateView(
@@ -48,84 +61,69 @@ public class SecondFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        RecyclerView recyclerView = binding.myRv;
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new BtRecyclerViewAdapter(btList);
-        recyclerView.setAdapter(adapter);
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener (this.getContext(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
-            @Override public void onItemClick(View view, int position) {
-                Snackbar.make(view, btList.get(position).name, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-
-            @Override public void onLongItemClick(View view, int position) {
-                // do whatever
-            }
-        })
-        );
-
-        BluetoothConfiguration config = new BluetoothConfiguration();
-        config.context = getContext().getApplicationContext();
-        config.bluetoothServiceClass = BluetoothClassicService.class;
-        config.bufferSize = 1024;
-        config.characterDelimiter = '\n';
-        config.deviceName = "MqttPlantAnalyzer";
-        config.callListenersInMainThread = true;
-        BtDisp bt = new BtDisp("mio", "device.getAddress()", "dopo");
-        btList.add(bt);
-        // Required
-        config.uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-
-        BluetoothService.init(config);
-        service = BluetoothService.getDefaultInstance();
-        service.setOnScanCallback(new BluetoothService.OnBluetoothScanCallback() {
+        lineChart = view.findViewById(R.id.lineChart);
+        mDatabase = FirebaseDatabase.getInstance("https://mqttplantanalyzer-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
+        mDatabase.child("ex").setValue("Hello");
+        DatabaseReference userRef = mDatabase.child("user");
+        userRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDeviceDiscovered(BluetoothDevice device, int rssi) {
-                if(device.getName()!=null&&device.getAddress()!=null) {
-                    BtDisp bt = new BtDisp(device.getName(), device.getAddress(), "dopo");
-                    btList.add(bt);
-                    recyclerView.setAdapter(adapter);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                Log.e("Data CHANGE", dataSnapshot.toString());
+                entryList.clear();
+                LineDataSet lineDataSet = new LineDataSet(entryList,"Luminosity");
+                lineDataSet.setColors(Color.BLUE);
+                lineDataSet.setFillAlpha(110);
+                lineData = new LineData(lineDataSet);
+
+                lineChart.setBackgroundColor(Color.WHITE);
+                lineChart.getDescription().setEnabled(false);
+                lineChart.setDrawGridBackground(false);
+                lineChart.setDragEnabled(true);
+                lineChart.setScaleEnabled(true);
+
+                lineChart.setData(lineData);
+                lineChart.invalidate();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    MqttValue val = snapshot.getValue(MqttValue.class);
+                    Log.e("Data CHANGE", "Value is: " + val.getLux());
+                    entryList.add(new Entry(val.getTimestamp(),val.getLux()));
 
                 }
+                Collections.sort(entryList, new EntryXComparator());
+                lineDataSet = new LineDataSet(entryList,"Luminosity");
+                lineDataSet.setColors(Color.BLUE);
+                lineDataSet.setFillAlpha(110);
+                lineData = new LineData(lineDataSet);
+                lineChart.setBackgroundColor(Color.WHITE);
+                lineChart.getDescription().setEnabled(false);
+                lineChart.setDrawGridBackground(false);
+                lineChart.setDragEnabled(true);
+                lineChart.setScaleEnabled(true);
+
+                lineChart.setData(lineData);
+                lineChart.invalidate();
+                XAxis xAxis = lineChart.getXAxis();
+                xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE);
+                xAxis.setTextSize(10f);
+                xAxis.setTextColor(Color.BLACK);
+                xAxis.setDrawAxisLine(false);
+                xAxis.setDrawGridLines(true);
+                xAxis.setTextColor(Color.BLACK);
+                xAxis.setCenterAxisLabels(true);
+                xAxis.setGranularity(1f); // one hour
+                xAxis.setValueFormatter(new MyAxisFormatter());
             }
 
             @Override
-            public void onStartScan() {
-                BtDisp bt = new BtDisp("mio start", "device.getAddress()", "dopo");
-                btList.add(bt);
-                recyclerView.setAdapter(adapter);
-            }
-
-            @Override
-            public void onStopScan() {
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.e("Data ERROR", "Failed to read value.", error.toException());
             }
         });
-        service.setOnEventCallback(new BluetoothService.OnBluetoothEventCallback() {
-            @Override
-            public void onDataRead(byte[] buffer, int length) {
 
-            }
 
-            @Override
-            public void onStatusChange(BluetoothStatus status) {
-            }
-
-            @Override
-            public void onDeviceName(String deviceName) {
-            }
-
-            @Override
-            public void onToast(String message) {
-            }
-
-            @Override
-            public void onDataWrite(byte[] buffer) {
-            }
-        });
-        service.startScan(); // See also service.stopScan();
-
-        //service.connect(device); // See also service.disconnect();
 
         binding.buttonSecond.setOnClickListener(new View.OnClickListener() {
             @Override
