@@ -10,16 +10,12 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
-import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.EntryXComparator;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,21 +23,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import fede.tesi.mqttplantanalyzer.databinding.FragmentSecondBinding;
 
-public class SecondFragment extends Fragment {
-
+public class HumidityChartFragment extends Fragment {
     private FragmentSecondBinding binding;
     LineChart lineChart;
     LineData lineData;
@@ -72,7 +60,7 @@ public class SecondFragment extends Fragment {
                 // whenever data at this location is updated.
                 Log.e("Data CHANGE", dataSnapshot.toString());
                 entryList.clear();
-                LineDataSet lineDataSet = new LineDataSet(entryList,"Luminosity");
+                LineDataSet lineDataSet = new LineDataSet(entryList,"Humidity");
                 lineDataSet.setColors(Color.BLUE);
                 lineDataSet.setFillAlpha(110);
                 lineData = new LineData(lineDataSet);
@@ -88,13 +76,19 @@ public class SecondFragment extends Fragment {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MqttValue val = snapshot.getValue(MqttValue.class);
                     Log.e("Data CHANGE", "Value is: " + val.getLux());
-                    entryList.add(new Entry(val.getTimestamp(),val.getLux()));
+                    entryList.add(new Entry(val.getTimestamp(),val.getHumidity()));
 
                 }
                 Collections.sort(entryList, new EntryXComparator());
-                lineDataSet = new LineDataSet(entryList,"Luminosity");
+                lineDataSet = new LineDataSet(entryList,"Humidity");
                 lineDataSet.setColors(Color.BLUE);
-                lineDataSet.setFillAlpha(110);
+                lineDataSet.setFillAlpha(85);
+                lineDataSet.setCircleRadius(5f);
+                lineDataSet.setDrawFilled(true);
+                lineDataSet.setFillColor(Color.BLUE);
+                lineDataSet.setCircleColors(Color.DKGRAY);
+                lineDataSet.setDrawCircleHole(false);
+
                 lineData = new LineData(lineDataSet);
                 lineChart.setBackgroundColor(Color.WHITE);
                 lineChart.getDescription().setEnabled(false);
@@ -103,17 +97,26 @@ public class SecondFragment extends Fragment {
                 lineChart.setScaleEnabled(true);
 
                 lineChart.setData(lineData);
-                lineChart.invalidate();
                 XAxis xAxis = lineChart.getXAxis();
-                xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE);
+                xAxis.setPosition(XAxis.XAxisPosition.TOP);
                 xAxis.setTextSize(10f);
                 xAxis.setTextColor(Color.BLACK);
                 xAxis.setDrawAxisLine(false);
                 xAxis.setDrawGridLines(true);
                 xAxis.setTextColor(Color.BLACK);
                 xAxis.setCenterAxisLabels(true);
-                xAxis.setGranularity(1f); // one hour
+                xAxis.setGranularity(10f); // one hour
                 xAxis.setValueFormatter(new MyAxisFormatter());
+                lineChart.getAxisLeft().setAxisMinimum(0f);
+                lineChart.getAxisLeft().setAxisMaximum(100f);
+                lineChart.getAxisRight().setAxisMinimum(0f);
+                lineChart.getAxisRight().setAxisMaximum(100f);
+                lineChart.setVisibleXRangeMaximum(15f);
+                lineChart.setVisibleXRangeMinimum(15f);
+                lineChart.setDrawGridBackground(false);
+                lineChart.getAxisLeft().setDrawGridLines(false);
+                lineChart.getXAxis().setDrawGridLines(false);
+                lineChart.invalidate();
             }
 
             @Override
@@ -128,8 +131,8 @@ public class SecondFragment extends Fragment {
         binding.buttonSecond.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NavHostFragment.findNavController(SecondFragment.this)
-                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
+                NavHostFragment.findNavController(HumidityChartFragment.this)
+                        .navigate(R.id.action_HumidityFragment_to_SecondFragment);
             }
         });
 
@@ -140,5 +143,4 @@ public class SecondFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }

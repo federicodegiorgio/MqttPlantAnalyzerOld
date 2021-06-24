@@ -187,7 +187,13 @@ public class MyMqttService extends Service implements MqttCallback, IMqttActionL
             DatabaseReference myRef = database.getReference("user/"+ts);
             DatabaseReference timeref= myRef.child("timestamp");
             DatabaseReference luxref= myRef.child("lux");
-            luxref.setValue(obj.get("Moisture"));
+            DatabaseReference moisref= myRef.child("moisture");
+            DatabaseReference tempref= myRef.child("temperature");
+            DatabaseReference humref= myRef.child("humidity");
+            luxref.setValue(obj.get("Luminosity"));
+            moisref.setValue(obj.get("Moisture"));
+            tempref.setValue(obj.get("Temperature"));
+            humref.setValue(obj.get("Humidity"));
             timeref.setValue(now);
             Log.e("My App", obj.toString());
 

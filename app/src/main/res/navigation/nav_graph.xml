@@ -17,12 +17,71 @@
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="fede.tesi.mqttplantanalyzer.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        android:name="fede.tesi.mqttplantanalyzer.ChartListFragment"
+        android:label="@string/second_fragment_label">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_LuminosityFragment"
+            app:destination="@id/LuminosityFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_HumidityFragment"
+            app:destination="@id/HumidityFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_TemperatureFragment"
+            app:destination="@id/TemperatureFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_MoistureFragment"
+            app:destination="@id/MoistureFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/LuminosityFragment"
+        android:name="fede.tesi.mqttplantanalyzer.LuminosityChartFragment"
+        android:label="@string/luminosity_label"
+        tools:layout="@layout/fragment_second">
+
+    <action
+        android:id="@+id/action_LuminosityFragment_to_SecondFragment"
+        app:destination="@id/SecondFragment" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/HumidityFragment"
+        android:name="fede.tesi.mqttplantanalyzer.HumidityChartFragment"
+        android:label="@string/humidity_label"
+        tools:layout="@layout/fragment_second">
+
+    <action
+        android:id="@+id/action_HumidityFragment_to_SecondFragment"
+        app:destination="@id/SecondFragment" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/TemperatureFragment"
+        android:name="fede.tesi.mqttplantanalyzer.TemperatureChartFragment"
+        android:label="@string/temperature_label"
+        tools:layout="@layout/fragment_second">
+
+    <action
+        android:id="@+id/action_TemperatureFragment_to_SecondFragment"
+        app:destination="@id/SecondFragment" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/MoistureFragment"
+        android:name="fede.tesi.mqttplantanalyzer.MoistureChartFragment"
+        android:label="@string/moisture_label"
+        tools:layout="@layout/fragment_second">
+
+    <action
+        android:id="@+id/action_MoistureFragment_to_SecondFragment"
+        app:destination="@id/SecondFragment" />
+    </fragment>
+
 </navigation>
