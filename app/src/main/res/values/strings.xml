@@ -21,6 +21,7 @@
         <item>Humidity</item>
         <item>Temperature</item>
         <item>Moisture</item>
+        <item>Image</item>
     </string-array>
 
 </resources>

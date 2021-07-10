@@ -3,7 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/SecondFragment">
+
+    <fragment
+        android:id="@+id/ImageFragment"
+        android:name="fede.tesi.mqttplantanalyzer.ImageFragment"
+        android:label="@string/first_fragment_label"
+        tools:layout="@layout/image_fragment">
+
+        <action
+            android:id="@+id/action_ImageFragment_to_SecondFragment"
+            app:destination="@id/SecondFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/FirstFragment"
@@ -35,6 +46,9 @@
         <action
             android:id="@+id/action_SecondFragment_to_MoistureFragment"
             app:destination="@id/MoistureFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_ImageFragment"
+            app:destination="@id/ImageFragment" />
     </fragment>
 
     <fragment

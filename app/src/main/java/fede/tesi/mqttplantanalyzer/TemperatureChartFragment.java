@@ -91,6 +91,10 @@ public class TemperatureChartFragment extends Fragment {
                 lineDataSet.setCircleRadius(5f);
                 lineDataSet.setCircleColors(Color.DKGRAY);
                 lineDataSet.setDrawCircleHole(false);
+                lineChart.getAxisLeft().setAxisMinimum(-15f);
+                lineChart.getAxisLeft().setAxisMaximum(45f);
+                lineChart.getAxisRight().setAxisMinimum(-15f);
+                lineChart.getAxisRight().setAxisMaximum(45f);
 
                 lineData = new LineData(lineDataSet);
                 lineChart.setBackgroundColor(Color.WHITE);

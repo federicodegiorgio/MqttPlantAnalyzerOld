@@ -65,6 +65,11 @@ public class ChartListFragment extends Fragment {
                         NavHostFragment.findNavController(ChartListFragment.this)
                                 .navigate(R.id.action_SecondFragment_to_TemperatureFragment);
                         break;
+
+                    case "Image":
+                        NavHostFragment.findNavController(ChartListFragment.this)
+                                .navigate(R.id.action_SecondFragment_to_ImageFragment);
+                        break;
                     default:
                         break;
                 }
