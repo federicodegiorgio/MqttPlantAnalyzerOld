@@ -1,5 +1,6 @@
 package fede.tesi.mqttplantanalyzer;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,13 +9,15 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.welie.blessed.BluetoothPeripheral;
+
 import java.util.LinkedList;
 import java.util.List;
 
 public class BtRecyclerViewAdapter extends RecyclerView.Adapter<BtRecyclerViewAdapter.ViewHolder> {
 
-        private LinkedList<BtDisp> localDataSet;
-        private BtDisp bt;
+        private LinkedList<BluetoothPeripheral> localDataSet;
+        private BluetoothPeripheral bt;
 
         /**
          * Provide a reference to the type of views that you are using
@@ -41,7 +44,7 @@ public class BtRecyclerViewAdapter extends RecyclerView.Adapter<BtRecyclerViewAd
          * @param dataSet String[] containing the data to populate views to be used
          * by RecyclerView.
          */
-        public BtRecyclerViewAdapter(LinkedList<BtDisp> dataSet) {
+        public BtRecyclerViewAdapter(LinkedList<BluetoothPeripheral> dataSet) {
             localDataSet = dataSet;
         }
 
@@ -61,7 +64,7 @@ public class BtRecyclerViewAdapter extends RecyclerView.Adapter<BtRecyclerViewAd
             // Get element from your dataset at this position and replace the
             // contents of the view with that element
             bt=localDataSet.get(position);
-            viewHolder.getTextView().setText(bt.name);
+            viewHolder.getTextView().setText(bt.getName());
         }
 
         // Return the size of your dataset (invoked by the layout manager)
