@@ -87,12 +87,12 @@ public class WifiConnectionActivity extends AppCompatActivity {
                 arraylist.clear();
                 wifi.startScan();
 
-                Toast.makeText(getApplicationContext(), "Scanning...." + size, Toast.LENGTH_SHORT).show();
+                Toast.makeText(WifiConnectionActivity.this, "Scanning...." + size, Toast.LENGTH_SHORT).show();
                 try {
                     size = size - 1;
                     while (size >= 0) {
                         HashMap<String, String> item = new HashMap<String, String>();
-                        item.put(ITEM_KEY, results.get(size).SSID + "  " + results.get(size).capabilities);
+                        item.put(ITEM_KEY, results.get(size).SSID);
 
                         arraylist.add(item);
                         size--;
@@ -107,22 +107,22 @@ public class WifiConnectionActivity extends AppCompatActivity {
         wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (wifi.isWifiEnabled() == false)
         {
-            Toast.makeText(getApplicationContext(), "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(WifiConnectionActivity.this, "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
             wifi.setWifiEnabled(true);
         }
-        this.adapter = new SimpleAdapter(getApplicationContext(), arraylist, R.layout.row, new String[] { ITEM_KEY }, new int[] { R.id.listwifi_value });
+        this.adapter = new SimpleAdapter(WifiConnectionActivity.this , arraylist, R.layout.row, new String[] { ITEM_KEY }, new int[] { R.id.listwifi_value });
         lv.setAdapter(this.adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String item = (String) results.get(i).SSID;
-                Toast.makeText(getApplicationContext(),"You selected : " + item,Toast.LENGTH_SHORT).show();
+                String item = (String) arraylist.get(i).get(ITEM_KEY);
+                Toast.makeText(WifiConnectionActivity.this,"You selected : " + item,Toast.LENGTH_SHORT).show();
                 ssid_Text=item;
                 AlertDialog.Builder builder = new AlertDialog.Builder(WifiConnectionActivity.this);
                 builder.setTitle("Password per "+ssid_Text);
 
                 // Set up the input
-                final EditText input = new EditText(getApplicationContext());
+                final EditText input = new EditText(WifiConnectionActivity.this);
 // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
                 input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 builder.setView(input);

@@ -115,7 +115,7 @@ public class FirstFragment extends Fragment {
                 // If it has the write property we write the current time
                 if ((usernameCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
                         BluetoothBytesParser parser = new BluetoothBytesParser();
-                        String p="prova";
+                        String p="$"+"prova";
                         parser.setString(p);
                         peripheral.writeCharacteristic(usernameCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
                 }
@@ -400,7 +400,7 @@ public class FirstFragment extends Fragment {
                         Snackbar.make(view, btList.get(position).getName(), Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
                         seldev=btList.get(position);
-                        //central.connectPeripheral(seldev, peripheralCallback);
+                        central.connectPeripheral(seldev, peripheralCallback);
                         Intent i = new Intent(getActivity(), WifiConnectionActivity.class);
                         startActivityForResult(i,WIFI_ACTIVITY_REQUEST_CODE);
 
@@ -453,6 +453,33 @@ public class FirstFragment extends Fragment {
                 Snackbar.make(view, "ssid= "+ssid_Text+"  pwd: "+pwd_Text, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 // send ssid e pwd
+                // Turn on notifications for Current Time Service and write it if possible
+                BluetoothGattCharacteristic ssidCharacteristic = seldev.getCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
+                if (ssidCharacteristic != null) {
+                    seldev.setNotify(ssidCharacteristic, true);
+
+                    // If it has the write property we write the current time
+                    if ((ssidCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
+                        BluetoothBytesParser parser = new BluetoothBytesParser();
+                        String p="!"+ssid_Text;
+                        parser.setString(p);
+                        seldev.writeCharacteristic(ssidCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
+                    }
+                }
+
+                BluetoothGattCharacteristic pwdCharacteristic = seldev.getCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
+                if (pwdCharacteristic != null) {
+                    seldev.setNotify(pwdCharacteristic, true);
+
+                    // If it has the write property we write the current time
+                    if ((pwdCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
+                        BluetoothBytesParser parser = new BluetoothBytesParser();
+                        String p="?"+pwd_Text;
+                        parser.setString(p);
+                        seldev.writeCharacteristic(pwdCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
+                    }
+                }
+
             }
         }
     }
