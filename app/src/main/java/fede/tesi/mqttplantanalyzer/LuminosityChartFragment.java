@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -25,6 +26,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import fede.tesi.mqttplantanalyzer.databinding.FragmentSecondBinding;
 
@@ -52,8 +54,7 @@ public class LuminosityChartFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         lineChart = view.findViewById(R.id.lineChart);
         mDatabase = FirebaseDatabase.getInstance("https://mqttplantanalyzer-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
-        mDatabase.child("ex").setValue("Hello");
-        DatabaseReference userRef = mDatabase.child("user");
+        DatabaseReference userRef = mDatabase.child("prova").child("246f28969298");
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -77,7 +78,8 @@ public class LuminosityChartFragment extends Fragment {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MqttValue val = snapshot.getValue(MqttValue.class);
                     Log.e("Data CHANGE", "Value is: " + val.getLux());
-                    entryList.add(new Entry(val.getTimestamp(),val.getLux()));
+                    long time= TimeUnit.MILLISECONDS.toMinutes(val.getTimestamp());
+                    entryList.add(new Entry(time,val.getLux()));
 
                 }
                 Collections.sort(entryList, new EntryXComparator());
@@ -108,10 +110,14 @@ public class LuminosityChartFragment extends Fragment {
                 xAxis.setDrawGridLines(true);
                 xAxis.setTextColor(Color.BLACK);
                 xAxis.setCenterAxisLabels(true);
-                xAxis.setGranularity(10f); // one hour
+                xAxis.setGranularity(30f); // half hour
                 xAxis.setValueFormatter(new MyAxisFormatter());
-                lineChart.setVisibleXRangeMaximum(15f);
-                lineChart.setVisibleXRangeMinimum(15f);
+
+
+                lineChart.setVisibleXRangeMaximum(60f);
+                lineChart.setVisibleXRangeMinimum(30f);
+                lineChart.setVisibleYRangeMaximum(360f,lineChart.getAxisLeft().getAxisDependency());
+                lineChart.setVisibleYRangeMinimum(60f,lineChart.getAxisLeft().getAxisDependency());
                 lineChart.setDrawGridBackground(false);
                 lineChart.getAxisLeft().setDrawGridLines(false);
                 lineChart.getXAxis().setDrawGridLines(false);
@@ -123,6 +129,7 @@ public class LuminosityChartFragment extends Fragment {
                 // Failed to read value
                 Log.e("Data ERROR", "Failed to read value.", error.toException());
             }
+
         });
 
 
