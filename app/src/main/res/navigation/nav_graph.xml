@@ -49,6 +49,9 @@
         <action
             android:id="@+id/action_SecondFragment_to_ImageFragment"
             app:destination="@id/ImageFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_MapFragment"
+            app:destination="@id/MapFragment" />
     </fragment>
 
     <fragment
@@ -96,6 +99,17 @@
     <action
         android:id="@+id/action_MoistureFragment_to_SecondFragment"
         app:destination="@id/SecondFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/MapFragment"
+        android:name="fede.tesi.mqttplantanalyzer.MapFragment"
+        android:label="Map Fragment"
+        tools:layout="@layout/fragment_map">
+
+        <action
+            android:id="@+id/action_MapFragment_to_SecondFragment"
+            app:destination="@id/SecondFragment" />
     </fragment>
 
 </navigation>

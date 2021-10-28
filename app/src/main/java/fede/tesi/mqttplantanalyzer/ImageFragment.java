@@ -1,38 +1,39 @@
 package fede.tesi.mqttplantanalyzer;
 
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.Intent;
 import android.os.Bundle;
 
-import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
 
 
-import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
-import fede.tesi.mqttplantanalyzer.databinding.FragmentSecondBinding;
 import fede.tesi.mqttplantanalyzer.databinding.ImageFragmentBinding;
 
 public class ImageFragment extends Fragment {
     private ImageFragmentBinding binding;
     FirebaseStorage storage = FirebaseStorage.getInstance();
     private StorageReference storageRef;
+    private List<StorageReference> listImageRef=new ArrayList<>();
+    ListView listView;
 
     @Override
     public View onCreateView(
@@ -47,24 +48,38 @@ public class ImageFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        listView=(ListView)view.findViewById(R.id.imagesList);
+        final ImageArrayAdapter adapter = new ImageArrayAdapter(this.getActivity().getBaseContext(), android.R.layout.simple_list_item_1, android.R.id.text1, listImageRef);
+        listView.setAdapter(adapter);
         storageRef = storage.getReference();
+        //1634133409188.JPG
+        StorageReference pathReference = storageRef.child("KSHwKdsgiNe5kgh1eKTXJZHGxxq1/246f28969298");
+        pathReference.listAll()
+            .addOnSuccessListener(new OnSuccessListener<ListResult>() {
+                @Override
+                public void onSuccess(ListResult listResult) {
+                    for (StorageReference prefix : listResult.getPrefixes()) {
+                        // All the prefixes under listRef.
+                        // You may call listAll() recursively on them.
+                    }
 
-        StorageReference pathReference = storageRef.child("es/prova");
-        ImageView image =(ImageView)view.findViewById(R.id.imageCam);
-        //encode image to base64 string
-        final long ONE_MEGABYTE = 1024 * 1024;
-        pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                    for (StorageReference item : listResult.getItems()) {
+                        listImageRef.add(item);
+                    }
+                    Collections.sort(listImageRef,Collections.reverseOrder());
+                    listView.setAdapter(adapter);
+                }
+            });
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onSuccess(byte[] bytes) {
-                // Data for "images/island.jpg" is returns, use this as needed
-                image.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
-
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle any errors
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                // TODO Auto-generated method stub
+                StorageReference value=adapter.getItem(position);
+                Log.e("VALUE REF",value.getName());
+                StorageReference pathObjReference = storageRef.child(value.getName());
+                Intent i =new Intent(getActivity().getBaseContext(),ImageActivity.class);
+                i.putExtra("imm","KSHwKdsgiNe5kgh1eKTXJZHGxxq1/246f28969298/"+value.getName());
+                getActivity().getBaseContext().startActivity(i);
             }
         });
 
@@ -75,5 +90,6 @@ public class ImageFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
+
 }
 

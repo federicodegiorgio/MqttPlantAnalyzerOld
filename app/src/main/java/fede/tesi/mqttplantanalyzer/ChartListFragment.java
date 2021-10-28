@@ -1,5 +1,6 @@
 package fede.tesi.mqttplantanalyzer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,6 +70,10 @@ public class ChartListFragment extends Fragment {
                     case "Image":
                         NavHostFragment.findNavController(ChartListFragment.this)
                                 .navigate(R.id.action_SecondFragment_to_ImageFragment);
+                        break;
+                    case "Map":
+                        Intent i =new Intent(getActivity().getBaseContext(),MapFragment.class);
+                        getActivity().getBaseContext().startActivity(i);
                         break;
                     default:
                         break;

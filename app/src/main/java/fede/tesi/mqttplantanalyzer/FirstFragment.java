@@ -27,6 +27,8 @@ import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothClassicService;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothConfiguration;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothService;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.welie.blessed.BluetoothBytesParser;
 import com.welie.blessed.BluetoothCentralManager;
@@ -77,6 +79,7 @@ public class FirstFragment extends Fragment {
     public BluetoothCentralManager central;
     public RecyclerView recyclerView;
     public View view;
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     @Override
     public View onCreateView(
@@ -115,7 +118,7 @@ public class FirstFragment extends Fragment {
                 // If it has the write property we write the current time
                 if ((usernameCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
                         BluetoothBytesParser parser = new BluetoothBytesParser();
-                        String p="$"+"prova";
+                        String p="$"+user.getUid();
                         parser.setString(p);
                         peripheral.writeCharacteristic(usernameCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
                 }

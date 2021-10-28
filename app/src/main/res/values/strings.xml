@@ -22,6 +22,7 @@
         <item>Temperature</item>
         <item>Moisture</item>
         <item>Image</item>
+        <item>Map</item>
     </string-array>
 
 </resources>
