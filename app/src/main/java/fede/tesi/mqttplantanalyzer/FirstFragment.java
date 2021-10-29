@@ -1,11 +1,15 @@
 package fede.tesi.mqttplantanalyzer;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.ScanResult;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,6 +22,7 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,9 +31,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothClassicService;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothConfiguration;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothService;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 import com.welie.blessed.BluetoothBytesParser;
 import com.welie.blessed.BluetoothCentralManager;
@@ -65,7 +77,7 @@ import static com.welie.blessed.BluetoothBytesParser.bytes2String;
 
 public class FirstFragment extends Fragment {
 
-    private static final UUID SERVICE_UUID=UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
+    private static final UUID SERVICE_UUID = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
     private static final UUID CHARACTERISTIC_UUID = UUID.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8");
 
     private static final int WIFI_ACTIVITY_REQUEST_CODE = 0;
@@ -73,13 +85,18 @@ public class FirstFragment extends Fragment {
     public String ssid_Text = "";
     public String pwd_Text = "";
     private FragmentFirstBinding binding;
-    public LinkedList<BluetoothPeripheral> btList=new LinkedList<>();
+    public LinkedList<BluetoothPeripheral> btList = new LinkedList<>();
     public BtRecyclerViewAdapter adapterr;
     public BluetoothPeripheral seldev;
     public BluetoothCentralManager central;
     public RecyclerView recyclerView;
     public View view;
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    private FusedLocationProviderClient fusedLocationClient;
+    private Activity activity;
+    private DatabaseReference mDatabase;
+
+
 
     @Override
     public View onCreateView(
@@ -88,6 +105,8 @@ public class FirstFragment extends Fragment {
     ) {
 
         binding = FragmentFirstBinding.inflate(inflater, container, false);
+        activity=this.getActivity();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         return binding.getRoot();
 
     }
@@ -104,7 +123,7 @@ public class FirstFragment extends Fragment {
             // Request a new connection priority
             peripheral.requestConnectionPriority(ConnectionPriority.HIGH);
 
-            Snackbar.make(view,"Post time to" +peripheral.getName(), Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "Post time to" + peripheral.getName(), Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
             // Read manufacturer and model number from the Device Information Service
             peripheral.readCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
@@ -117,94 +136,37 @@ public class FirstFragment extends Fragment {
 
                 // If it has the write property we write the current time
                 if ((usernameCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
-                        BluetoothBytesParser parser = new BluetoothBytesParser();
-                        String p="$"+user.getUid();
-                        parser.setString(p);
-                        peripheral.writeCharacteristic(usernameCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
+                    BluetoothBytesParser parser = new BluetoothBytesParser();
+                    String p = "$" + user.getUid();
+                    parser.setString(p);
+                    peripheral.writeCharacteristic(usernameCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
                 }
             }
-            /*
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle("Nome della rete");
-
-            // Set up the input
-            final EditText input = new EditText(getContext());
-// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            builder.setView(input);
-
-// Set up the buttons
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    ssid_Text = input.getText().toString();
-
-                    BluetoothGattCharacteristic ssidCharacteristic = peripheral.getCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
-                    if (ssidCharacteristic != null) {
-                        peripheral.setNotify(ssidCharacteristic, true);
-
-                        // If it has the write property we write the current time
-                        if ((ssidCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
-                            BluetoothBytesParser parser = new BluetoothBytesParser();
-                            String p=ssid_Text;
-                            parser.setString(p);
-                            peripheral.writeCharacteristic(ssidCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
-                        }
-                    }
-
-                }
-            });
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                }
-            });
-            
-
-            while(builder.show().isShowing()){
-                ;
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
             }
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(activity, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                LatLng myPos = new LatLng(location.getLatitude(), location.getLongitude());
+                                mDatabase.child("Locations").child("Latitude").child(String.valueOf(location.getLatitude()))
+                                        .child("Longitude").child(String.valueOf(location.getLongitude())).setValue(user.getUid());
+                                mDatabase.child("users").child(user.getUid()).child("schede").child("val").child("Longitude").setValue(location.getLongitude());
+                                mDatabase.child("users").child(user.getUid()).child("schede").child("val").child("Latitude").setValue(location.getLatitude());
 
-            AlertDialog.Builder builderr = new AlertDialog.Builder(getContext());
-            builderr.setTitle("Password");
-            // Set up the input
-            final EditText inputt = new EditText(getContext());
-// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            builderr.setView(inputt);
-
-
-// Set up the buttons
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    pwd_Text = input.getText().toString();
-                    BluetoothGattCharacteristic pwdCharacteristic = peripheral.getCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
-                    if (pwdCharacteristic != null) {
-                        peripheral.setNotify(pwdCharacteristic, true);
-
-                        // If it has the write property we write the current time
-                        if ((pwdCharacteristic.getProperties() & PROPERTY_WRITE) > 0) {
-                            BluetoothBytesParser parser = new BluetoothBytesParser();
-                            String p=ssid_Text;
-                            parser.setString(p);
-                            peripheral.writeCharacteristic(pwdCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
+                            }
                         }
-                    }
-                }
-            });
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                }
-            });
-
-            builderr.show();*/
-
-
-
+                    });
 
         }
 

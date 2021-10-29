@@ -27,12 +27,17 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,89 +46,69 @@ import java.util.Locale;
 import fede.tesi.mqttplantanalyzer.databinding.ActivityMainBinding;
 import fede.tesi.mqttplantanalyzer.databinding.FragmentSecondBinding;
 
-public class MapFragment extends AppCompatActivity implements OnMapReadyCallback,LocationListener {
+public class MapFragment extends AppCompatActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
-    LocationManager locationManager;
-
-
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-        }
-
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 500, this);
-
         setContentView(R.layout.fragment_map);
-
-        SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        locationManager.requestLocationUpdates(provider, 400, 1, this);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     *
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Add a marker in Sydney and move the camera
+        LatLng sydney = new LatLng(-34, 151);
+        mMap.addMarker(new MarkerOptions()
+                .position(sydney)
+                .title("Marker in Sydney"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
-        //LatLng sydney = new LatLng(-34, 151);
-        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-
-        LatLng x = new LatLng(lat, lon);
-        //Fetching address from lat and Lon---Geo Coding
-
-        Geocoder geo = new Geocoder(MapFragment.this);
-        try {
-            List<Address> addresses = geo.getFromLocation(lat, lon, 10);
-            String adreess = addresses.get(0).getAddressLine(0);
-            String country = addresses.get(0).getCountryName();
-            String permises = addresses.get(0).getPremises();
-            mMap.addMarker(new MarkerOptions().position(x).title("Country:" + country + "\nAdress" + adreess + "\nPermises" + permises));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(x));
-            mMap.moveCamera(CameraUpdateFactory.zoomBy(14));
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
-        mMap.addMarker(new MarkerOptions().position(x).title("Marker in Whitefield"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(x));
-        mMap.moveCamera(CameraUpdateFactory.zoomBy(14));
-        Toast.makeText(MapFragment.this, "Location Changed", Toast.LENGTH_LONG).show();
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            LatLng myPos = new LatLng(location.getLatitude(),location.getLongitude());
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(myPos)
+                                    .title("Marker in Home"));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(myPos));
 
-
+                        }
+                    }
+                });
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        if (status == LocationProvider.TEMPORARILY_UNAVAILABLE) {
-            //Suddenely satellite comm is temperory unavailable
-        } else if (status == LocationProvider.OUT_OF_SERVICE) {
-
-        } else {
-            //Satellite or towers are available
-        }
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 
 }
+

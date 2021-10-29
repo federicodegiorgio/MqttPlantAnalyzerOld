@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     private static final String TAG = "MyActivity";
-
+    private FirebaseAuth auth;
     //LineChart chart;
 
     @Override
@@ -86,7 +86,11 @@ public class MainActivity extends AppCompatActivity {
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
                 .build();
-        signInLauncher.launch(signInIntent);
+        auth = FirebaseAuth.getInstance();
+
+        if (auth.getCurrentUser() != null) {
+            signInLauncher.launch(signInIntent);
+        }
 
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());

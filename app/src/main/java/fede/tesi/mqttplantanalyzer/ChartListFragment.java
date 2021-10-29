@@ -1,5 +1,7 @@
 package fede.tesi.mqttplantanalyzer;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -72,7 +74,8 @@ public class ChartListFragment extends Fragment {
                                 .navigate(R.id.action_SecondFragment_to_ImageFragment);
                         break;
                     case "Map":
-                        Intent i =new Intent(getActivity().getBaseContext(),MapFragment.class);
+                        Intent i =new Intent(listView.getContext(),MapFragment.class);
+                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         getActivity().getBaseContext().startActivity(i);
                         break;
                     default:
