@@ -22,6 +22,7 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
@@ -75,7 +76,7 @@ import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT8;
 import static com.welie.blessed.BluetoothBytesParser.bytes2String;
 
 
-public class FirstFragment extends Fragment {
+public class FirstFragment extends AppCompatActivity {
 
     private static final UUID SERVICE_UUID = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
     private static final UUID CHARACTERISTIC_UUID = UUID.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8");
@@ -93,21 +94,55 @@ public class FirstFragment extends Fragment {
     public View view;
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private FusedLocationProviderClient fusedLocationClient;
-    private Activity activity;
     private DatabaseReference mDatabase;
-
+    private Activity activity = this;
 
 
     @Override
-    public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-
-        binding = FragmentFirstBinding.inflate(inflater, container, false);
-        activity=this.getActivity();
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.fragment_first);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        return binding.getRoot();
+        central = new BluetoothCentralManager(this, this.bluetoothCentralManagerCallback, new Handler(Looper.getMainLooper()));
+        central.scanForPeripherals();
+        recyclerView = binding.myRv;
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapterr = new BtRecyclerViewAdapter(btList);
+        recyclerView.setAdapter(adapterr);
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener (this, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        Snackbar.make(view, btList.get(position).getName(), Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                        seldev=btList.get(position);
+                        central.connectPeripheral(seldev, peripheralCallback);
+                        Intent i = new Intent(activity, WifiConnectionActivity.class);
+                        startActivityForResult(i,WIFI_ACTIVITY_REQUEST_CODE);
+
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                        // do whatever
+                    }
+                })
+        );
+
+
+
+
+
+
+
+        BluetoothConfiguration config = new BluetoothConfiguration();
+        config.context = this.getApplicationContext();
+        config.bluetoothServiceClass = BluetoothClassicService.class;
+        config.bufferSize = 1024;
+        config.characterDelimiter = '\n';
+        config.deviceName = "MqttPlantAnalyzer";
+        config.callListenersInMainThread = true;
+        // Required
+        config.uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+
+        BluetoothService.init(config);
 
     }
 
@@ -141,6 +176,16 @@ public class FirstFragment extends Fragment {
                     parser.setString(p);
                     peripheral.writeCharacteristic(usernameCharacteristic, parser.getValue(), WriteType.WITH_RESPONSE);
                 }
+            }
+            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
             }
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(activity, new OnSuccessListener<Location>() {
@@ -341,59 +386,6 @@ public class FirstFragment extends Fragment {
         }
     };
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        this.view=view;
-        central = new BluetoothCentralManager(this.getContext(), this.bluetoothCentralManagerCallback, new Handler(Looper.getMainLooper()));
-        central.scanForPeripherals();
-        recyclerView = binding.myRv;
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        adapterr = new BtRecyclerViewAdapter(btList);
-        recyclerView.setAdapter(adapterr);
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener (this.getContext(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override public void onItemClick(View view, int position) {
-                        Snackbar.make(view, btList.get(position).getName(), Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show();
-                        seldev=btList.get(position);
-                        central.connectPeripheral(seldev, peripheralCallback);
-                        Intent i = new Intent(getActivity(), WifiConnectionActivity.class);
-                        startActivityForResult(i,WIFI_ACTIVITY_REQUEST_CODE);
-
-                    }
-
-                    @Override public void onLongItemClick(View view, int position) {
-                        // do whatever
-                    }
-                })
-        );
-
-
-
-
-
-
-
-        BluetoothConfiguration config = new BluetoothConfiguration();
-        config.context = getContext().getApplicationContext();
-        config.bluetoothServiceClass = BluetoothClassicService.class;
-        config.bufferSize = 1024;
-        config.characterDelimiter = '\n';
-        config.deviceName = "MqttPlantAnalyzer";
-        config.callListenersInMainThread = true;
-        // Required
-        config.uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-
-        BluetoothService.init(config);
-
-        binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-            }
-        });
-
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -439,10 +431,5 @@ public class FirstFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
 
 }

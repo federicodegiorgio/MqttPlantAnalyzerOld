@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.navigation.fragment.NavHostFragment;
 
 
@@ -31,6 +32,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -39,14 +41,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
 import fede.tesi.mqttplantanalyzer.databinding.ActivityMainBinding;
-import fede.tesi.mqttplantanalyzer.databinding.FragmentSecondBinding;
+import fede.tesi.mqttplantanalyzer.databinding.FragmentMapBinding;
 
-public class MapFragment extends AppCompatActivity implements OnMapReadyCallback {
+
+public class MyMapFragment extends FragmentActivity implements OnMapReadyCallback, LocationListener {
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -58,7 +57,7 @@ public class MapFragment extends AppCompatActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
     }
 
     /**
@@ -73,6 +72,7 @@ public class MapFragment extends AppCompatActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
@@ -92,6 +92,7 @@ public class MapFragment extends AppCompatActivity implements OnMapReadyCallback
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -110,5 +111,9 @@ public class MapFragment extends AppCompatActivity implements OnMapReadyCallback
     }
 
 
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        Log.e("change",location.toString());
+    }
 }
 

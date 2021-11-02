@@ -36,7 +36,7 @@
         </activity>
         <activity android:name=".WifiConnectionActivity" />
         <activity android:name=".ImageActivity" />
-        <activity android:name=".MapFragment" />
+        <activity android:name=".MyMapFragment" />
 
         <uses-library
             android:name="org.apache.http.legacy"
