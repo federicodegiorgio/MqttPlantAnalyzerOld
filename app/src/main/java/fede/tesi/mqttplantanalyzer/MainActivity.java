@@ -88,9 +88,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         auth = FirebaseAuth.getInstance();
 
-        if (auth.getCurrentUser() != null) {
+        if (auth.getCurrentUser() == null) {
             signInLauncher.launch(signInIntent);
         }
+        else
+            Log.e("FirebaseUser =", auth.getUid());
 
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());

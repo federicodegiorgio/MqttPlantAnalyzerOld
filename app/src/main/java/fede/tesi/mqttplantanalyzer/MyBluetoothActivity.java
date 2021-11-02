@@ -76,7 +76,7 @@ import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT8;
 import static com.welie.blessed.BluetoothBytesParser.bytes2String;
 
 
-public class FirstFragment extends AppCompatActivity {
+public class MyBluetoothActivity extends AppCompatActivity {
 
     private static final UUID SERVICE_UUID = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
     private static final UUID CHARACTERISTIC_UUID = UUID.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8");
@@ -85,7 +85,6 @@ public class FirstFragment extends AppCompatActivity {
 
     public String ssid_Text = "";
     public String pwd_Text = "";
-    private FragmentFirstBinding binding;
     public LinkedList<BluetoothPeripheral> btList = new LinkedList<>();
     public BtRecyclerViewAdapter adapterr;
     public BluetoothPeripheral seldev;
@@ -105,7 +104,7 @@ public class FirstFragment extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         central = new BluetoothCentralManager(this, this.bluetoothCentralManagerCallback, new Handler(Looper.getMainLooper()));
         central.scanForPeripherals();
-        recyclerView = binding.myRv;
+        recyclerView = findViewById(R.id.my_rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapterr = new BtRecyclerViewAdapter(btList);
         recyclerView.setAdapter(adapterr);
@@ -245,75 +244,6 @@ public class FirstFragment extends AppCompatActivity {
                 intent.putExtra(MEASUREMENT_BLOODPRESSURE_EXTRA, measurement);
                 sendMeasurement(intent, peripheral);
                 Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals(TEMPERATURE_MEASUREMENT_CHARACTERISTIC_UUID)) {
-                TemperatureMeasurement measurement = new TemperatureMeasurement(value);
-                Intent intent = new Intent(MEASUREMENT_TEMPERATURE);
-                intent.putExtra(MEASUREMENT_TEMPERATURE_EXTRA, measurement);
-                sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID)) {
-                HeartRateMeasurement measurement = new HeartRateMeasurement(value);
-                Intent intent = new Intent(MEASUREMENT_HEARTRATE);
-                intent.putExtra(MEASUREMENT_HEARTRATE_EXTRA, measurement);
-                sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals(PLX_CONTINUOUS_MEASUREMENT_CHAR_UUID)) {
-                PulseOximeterContinuousMeasurement measurement = new PulseOximeterContinuousMeasurement(value);
-                if (measurement.getSpO2() <= 100 && measurement.getPulseRate() <= 220) {
-                    Intent intent = new Intent(MEASUREMENT_PULSE_OX);
-                    intent.putExtra(MEASUREMENT_PULSE_OX_EXTRA_CONTINUOUS, measurement);
-                    sendMeasurement(intent, peripheral);
-                }
-                Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals(PLX_SPOT_MEASUREMENT_CHAR_UUID)) {
-                PulseOximeterSpotMeasurement measurement = new PulseOximeterSpotMeasurement(value);
-                Intent intent = new Intent(MEASUREMENT_PULSE_OX);
-                intent.putExtra(MEASUREMENT_PULSE_OX_EXTRA_SPOT, measurement);
-                sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals(WSS_MEASUREMENT_CHAR_UUID)) {
-                WeightMeasurement measurement = new WeightMeasurement(value);
-                Intent intent = new Intent(MEASUREMENT_WEIGHT);
-                intent.putExtra(MEASUREMENT_WEIGHT_EXTRA, measurement);
-                sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals((GLUCOSE_MEASUREMENT_CHARACTERISTIC_UUID))) {
-                GlucoseMeasurement measurement = new GlucoseMeasurement(value);
-                Intent intent = new Intent(MEASUREMENT_GLUCOSE);
-                intent.putExtra(MEASUREMENT_GLUCOSE_EXTRA, measurement);
-                sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
-            } else if (characteristicUUID.equals(CURRENT_TIME_CHARACTERISTIC_UUID)) {
-                Date currentTime = parser.getDateTime();
-                Timber.i("Received device time: %s", currentTime);
-
-                // Deal with Omron devices where we can only write currentTime under specific conditions
-                if (isOmronBPM(peripheral.getName())) {
-                    BluetoothGattCharacteristic bloodpressureMeasurement = peripheral.getCharacteristic(BLP_SERVICE_UUID, BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID);
-                    if (bloodpressureMeasurement == null) return;
-
-                    boolean isNotifying = peripheral.isNotifying(bloodpressureMeasurement);
-                    if (isNotifying) currentTimeCounter++;
-
-                    // We can set device time for Omron devices only if it is the first notification and currentTime is more than 10 min from now
-                    long interval = abs(Calendar.getInstance().getTimeInMillis() - currentTime.getTime());
-                    if (currentTimeCounter == 1 && interval > 10 * 60 * 1000) {
-                        parser.setCurrentTime(Calendar.getInstance());
-                        peripheral.writeCharacteristic(characteristic, parser.getValue(), WriteType.WITH_RESPONSE);
-                    }
-                }
-            } else if (characteristicUUID.equals(BATTERY_LEVEL_CHARACTERISTIC_UUID)) {
-                int batteryLevel = parser.getIntValue(FORMAT_UINT8);
-                Timber.i("Received battery level %d%%", batteryLevel);
-            } else if (characteristicUUID.equals(MANUFACTURER_NAME_CHARACTERISTIC_UUID)) {
-                String manufacturer = parser.getStringValue(0);
-                Timber.i("Received manufacturer: %s", manufacturer);
-            } else if (characteristicUUID.equals(MODEL_NUMBER_CHARACTERISTIC_UUID)) {
-                String modelNumber = parser.getStringValue(0);
-                Timber.i("Received modelnumber: %s", modelNumber);
-            } else if (characteristicUUID.equals(PNP_ID_CHARACTERISTIC_UUID)) {
-                String modelNumber = parser.getStringValue(0);
-                Timber.i("Received pnp: %s", modelNumber);
             }*/
         }
 

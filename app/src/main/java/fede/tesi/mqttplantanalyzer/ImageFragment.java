@@ -79,6 +79,7 @@ public class ImageFragment extends Fragment {
                 StorageReference pathObjReference = storageRef.child(value.getName());
                 Intent i =new Intent(getActivity().getBaseContext(),ImageActivity.class);
                 i.putExtra("imm","KSHwKdsgiNe5kgh1eKTXJZHGxxq1/246f28969298/"+value.getName());
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getActivity().getBaseContext().startActivity(i);
             }
         });

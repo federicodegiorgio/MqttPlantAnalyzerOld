@@ -45,7 +45,7 @@ import fede.tesi.mqttplantanalyzer.databinding.ActivityMainBinding;
 import fede.tesi.mqttplantanalyzer.databinding.FragmentMapBinding;
 
 
-public class MyMapFragment extends FragmentActivity implements OnMapReadyCallback, LocationListener {
+public class MyMapFragment extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -111,9 +111,5 @@ public class MyMapFragment extends FragmentActivity implements OnMapReadyCallbac
     }
 
 
-    @Override
-    public void onLocationChanged(@NonNull Location location) {
-        Log.e("change",location.toString());
-    }
 }
 
