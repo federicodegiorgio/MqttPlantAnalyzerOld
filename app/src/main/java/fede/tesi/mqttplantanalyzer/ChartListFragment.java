@@ -88,8 +88,9 @@ public class ChartListFragment extends Fragment {
         binding.BtButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NavHostFragment.findNavController(ChartListFragment.this)
-                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
+                Intent i =new Intent(view.getContext(),MyBluetoothActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getActivity().getBaseContext().startActivity(i);
             }
         });
     }
