@@ -37,6 +37,7 @@
         <activity android:name=".WifiConnectionActivity" />
         <activity android:name=".ImageActivity" />
         <activity android:name=".MyMapFragment" />
+        <activity android:name=".MyBluetoothActivity" />
 
         <uses-library
             android:name="org.apache.http.legacy"
