@@ -33,6 +33,7 @@ import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothClassicService;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothConfiguration;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothService;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -110,8 +111,6 @@ public class MyBluetoothActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapterr);
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener (this, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        Snackbar.make(view, btList.get(position).getName(), Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show();
                         seldev=btList.get(position);
                         central.connectPeripheral(seldev, peripheralCallback);
                         Intent i = new Intent(activity, WifiConnectionActivity.class);
@@ -157,8 +156,7 @@ public class MyBluetoothActivity extends AppCompatActivity {
             // Request a new connection priority
             peripheral.requestConnectionPriority(ConnectionPriority.HIGH);
 
-            Snackbar.make(view, "Post time to" + peripheral.getName(), Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+            Log.i("Post time to" , peripheral.getName());
             // Read manufacturer and model number from the Device Information Service
             peripheral.readCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
 
@@ -186,6 +184,8 @@ public class MyBluetoothActivity extends AppCompatActivity {
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(activity, new OnSuccessListener<Location>() {
                         @Override
@@ -193,8 +193,8 @@ public class MyBluetoothActivity extends AppCompatActivity {
                             // Got last known location. In some rare situations this can be null.
                             if (location != null) {
                                 LatLng myPos = new LatLng(location.getLatitude(), location.getLongitude());
-                                mDatabase.child("Locations").child("Latitude").child(String.valueOf(location.getLatitude()))
-                                        .child("Longitude").child(String.valueOf(location.getLongitude())).setValue(user.getUid());
+                                //mDatabase.child("Locations").child("Latitude").child(String.valueOf(location.getLatitude()))
+                                //        .child("Longitude").child(String.valueOf(location.getLongitude())).setValue(user.getUid());
                                 mDatabase.child("users").child(user.getUid()).child("schede").child("val").child("Longitude").setValue(location.getLongitude());
                                 mDatabase.child("users").child(user.getUid()).child("schede").child("val").child("Latitude").setValue(location.getLatitude());
 
@@ -208,8 +208,6 @@ public class MyBluetoothActivity extends AppCompatActivity {
         public void onNotificationStateUpdate(@NotNull BluetoothPeripheral peripheral, @NotNull BluetoothGattCharacteristic characteristic, @NotNull GattStatus status) {
             if (status == GattStatus.SUCCESS) {
                 final boolean isNotifying = peripheral.isNotifying(characteristic);
-                Snackbar.make(view, "SUCCESS: Notify set to"+ isNotifying+"for"+ characteristic.getUuid(), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
                 Timber.i("SUCCESS: Notify set to '%s' for %s", isNotifying, characteristic.getUuid());
             }
                 else {
@@ -220,8 +218,6 @@ public class MyBluetoothActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicWrite(@NotNull BluetoothPeripheral peripheral, @NotNull byte[] value, @NotNull BluetoothGattCharacteristic characteristic, @NotNull GattStatus status) {
             if (status == GattStatus.SUCCESS) {
-                Snackbar.make(view, bytes2String(value), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
                 Timber.i("SUCCESS: Writing <%s> to <%s>", bytes2String(value), characteristic.getUuid());
             } else {
                 Timber.i("ERROR: Failed writing <%s> to <%s> (%s)", bytes2String(value), characteristic.getUuid(), status);
@@ -231,8 +227,7 @@ public class MyBluetoothActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicUpdate(@NotNull BluetoothPeripheral peripheral, @NotNull byte[] value, @NotNull BluetoothGattCharacteristic characteristic, @NotNull GattStatus status) {
             String str = new String(value, StandardCharsets.UTF_8); // for UTF-8 encodingbytes2
-            Snackbar.make(view, str, Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+            Log.i("CHAR UPDATE=",str);
             /*if (status != GattStatus.SUCCESS) return;
 
             UUID characteristicUUID = characteristic.getUuid();
@@ -296,8 +291,6 @@ public class MyBluetoothActivity extends AppCompatActivity {
         @Override
         public void onBluetoothAdapterStateChanged(int state) {
             Timber.i("bluetooth adapter changed state to %d", state);
-            Snackbar.make(view, "bluetooth adapter changed state to "+state, Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
             if (state == BluetoothAdapter.STATE_ON) {
                 // Bluetooth is on now, start scanning again
                 // Scan for peripherals with a certain service UUIDs
@@ -310,8 +303,7 @@ public class MyBluetoothActivity extends AppCompatActivity {
         @Override
         public void onScanFailed(@NotNull ScanFailure scanFailure) {
             Timber.i("scanning failed with error %s", scanFailure);
-            Snackbar.make(view, "scanning failed with error"+scanFailure.name(), Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+
             BluetoothAdapter.getDefaultAdapter().disable();
         }
     };
@@ -327,8 +319,7 @@ public class MyBluetoothActivity extends AppCompatActivity {
                 // get String data from Intent
                 ssid_Text = data.getStringExtra("ssid");
                 pwd_Text = data.getStringExtra("pwd");
-                Snackbar.make(view, "ssid= "+ssid_Text+"  pwd: "+pwd_Text, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Log.i("INTERNET CREDENTIAL=", ssid_Text+ "  "+pwd_Text);
                 // send ssid e pwd
                 // Turn on notifications for Current Time Service and write it if possible
                 BluetoothGattCharacteristic ssidCharacteristic = seldev.getCharacteristic(SERVICE_UUID, CHARACTERISTIC_UUID);
