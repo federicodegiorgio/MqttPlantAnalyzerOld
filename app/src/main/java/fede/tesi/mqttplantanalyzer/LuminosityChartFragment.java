@@ -17,6 +17,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.EntryXComparator;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,6 +39,7 @@ public class LuminosityChartFragment extends Fragment {
     LineData lineData;
     List<Entry> entryList = new ArrayList<>();
     private DatabaseReference mDatabase;
+    private FirebaseAuth auth;
 
     @Override
     public View onCreateView(
@@ -53,8 +55,9 @@ public class LuminosityChartFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         lineChart = view.findViewById(R.id.lineChart);
+        auth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance("https://mqttplantanalyzer-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
-        DatabaseReference userRef = mDatabase.child("prova").child("246f28969298");
+        DatabaseReference userRef = mDatabase.child(auth.getUid()).child("246f28969298");
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -82,7 +85,7 @@ public class LuminosityChartFragment extends Fragment {
                     entryList.add(new Entry(time,val.getLux()));
 
                 }
-                Collections.sort(entryList, new EntryXComparator());
+                Collections.sort(entryList, new EntryXComparator().reversed());
                 lineDataSet = new LineDataSet(entryList,"Luminosity");
                 lineDataSet.setColors(Color.YELLOW);
                 lineDataSet.setFillAlpha(85);
