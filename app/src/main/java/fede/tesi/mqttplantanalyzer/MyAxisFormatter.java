@@ -13,8 +13,8 @@ public class MyAxisFormatter extends ValueFormatter{
     private final SimpleDateFormat mFormat = new SimpleDateFormat("dd MMM HH:mm", Locale.ITALIAN);
     @Override
     public String getAxisLabel(float value, AxisBase axis) {
-
-        long millis = TimeUnit.MINUTES.toMillis((long) value);
+        float valueT=Math.abs(value);
+        long millis = TimeUnit.MINUTES.toMillis((long) valueT);
         return mFormat.format(new Date(millis));
     }
 

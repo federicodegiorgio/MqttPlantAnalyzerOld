@@ -124,6 +124,17 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_bt) {
+            Intent i =new Intent(this , MyBluetoothActivity.class);
+            this.startActivity(i);
+            return true;
+        }
+        if (id == R.id.action_map) {
+            Intent i =new Intent(this , MyMapFragment.class);
+            this.startActivity(i);
+            return true;
+        }
+        Log.e("MENU TOUCHED", String.valueOf(id));
 
         return super.onOptionsItemSelected(item);
     }

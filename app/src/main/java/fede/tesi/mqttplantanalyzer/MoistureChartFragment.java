@@ -130,13 +130,6 @@ public class MoistureChartFragment extends Fragment {
 
 
 
-        binding.buttonSecond.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                NavHostFragment.findNavController(MoistureChartFragment.this)
-                        .navigate(R.id.action_MoistureFragment_to_SecondFragment);
-            }
-        });
 
     }
 

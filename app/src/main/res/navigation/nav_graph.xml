@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/ImageFragment"
         android:name="fede.tesi.mqttplantanalyzer.ImageFragment"
-        android:label="@string/first_fragment_label"
+        android:label="Images List"
         tools:layout="@layout/image_fragment">
 
         <action

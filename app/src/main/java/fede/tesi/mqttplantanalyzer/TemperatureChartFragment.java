@@ -131,14 +131,6 @@ public class TemperatureChartFragment extends Fragment {
 
 
 
-        binding.buttonSecond.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                NavHostFragment.findNavController(TemperatureChartFragment.this)
-                        .navigate(R.id.action_TemperatureFragment_to_SecondFragment);
-            }
-        });
-
     }
 
     @Override
