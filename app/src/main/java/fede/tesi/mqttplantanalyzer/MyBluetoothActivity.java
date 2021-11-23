@@ -1,31 +1,27 @@
 package fede.tesi.mqttplantanalyzer;
 
+import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE;
+import static com.welie.blessed.BluetoothBytesParser.bytes2String;
+
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.ScanResult;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.InputType;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,22 +30,19 @@ import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothConfiguration;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.gson.Gson;
 import com.welie.blessed.BluetoothBytesParser;
 import com.welie.blessed.BluetoothCentralManager;
 import com.welie.blessed.BluetoothCentralManagerCallback;
 import com.welie.blessed.BluetoothPeripheral;
 import com.welie.blessed.BluetoothPeripheralCallback;
-import com.welie.blessed.BondState;
 import com.welie.blessed.ConnectionPriority;
 import com.welie.blessed.GattStatus;
 import com.welie.blessed.HciStatus;
@@ -58,23 +51,11 @@ import com.welie.blessed.WriteType;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
 import java.util.LinkedList;
-import java.util.Objects;
-import java.util.TimeZone;
 import java.util.UUID;
 
-import fede.tesi.mqttplantanalyzer.databinding.FragmentFirstBinding;
 import timber.log.Timber;
-
-import static android.app.Activity.RESULT_OK;
-import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE;
-import static com.welie.blessed.BluetoothBytesParser.FORMAT_SINT16;
-import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT16;
-import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT8;
-import static com.welie.blessed.BluetoothBytesParser.bytes2String;
 
 
 public class MyBluetoothActivity extends AppCompatActivity {
@@ -96,22 +77,53 @@ public class MyBluetoothActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private DatabaseReference mDatabase;
     private Activity activity = this;
-
-
+    public boolean connectedEsp=false;
+    public String idEsp;
+    final LoadingDialog loadingdialog = new LoadingDialog(MyBluetoothActivity.this);
+    BluetoothPeripheral peripheralEsp;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_first);
         mDatabase = FirebaseDatabase.getInstance().getReference();
         central = new BluetoothCentralManager(this, this.bluetoothCentralManagerCallback, new Handler(Looper.getMainLooper()));
-        central.scanForPeripherals();
         recyclerView = findViewById(R.id.my_rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapterr = new BtRecyclerViewAdapter(btList);
+
+        Button scan=(Button) findViewById(R.id.button_first);
+        scan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                btList.clear();
+                central.scanForPeripherals();
+
+                adapterr = new BtRecyclerViewAdapter(btList);
+                recyclerView.setAdapter(adapterr);
+                Handler handler = new Handler();
+
+                final LoadingDialog loadingdialog = new LoadingDialog(MyBluetoothActivity.this);
+                // invoking startLoadingDialog method
+                loadingdialog.startLoadingdialog();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e("Test Stop", String.valueOf(connectedEsp));
+
+                        // after 4 seconds
+                        loadingdialog.dismissdialog();
+                        // starting finished activity
+                        central.stopScan();
+                    }
+                }, 1500); // 1,5 seconds
+            }
+        });
         recyclerView.setAdapter(adapterr);
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener (this, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
                         seldev=btList.get(position);
+                        peripheralEsp=seldev;
+                        central.stopScan();
                         central.connectPeripheral(seldev, peripheralCallback);
                         Intent i = new Intent(activity, WifiConnectionActivity.class);
                         startActivityForResult(i,WIFI_ACTIVITY_REQUEST_CODE);
@@ -187,9 +199,14 @@ public class MyBluetoothActivity extends AppCompatActivity {
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
 
             fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(activity, new OnSuccessListener<Location>() {
+                    .addOnCompleteListener(activity, new OnCompleteListener<Location>() {
                         @Override
-                        public void onSuccess(Location location) {
+                        public void onComplete(@NonNull Task<Location> task) {
+                            Location location = task.getResult();
+                            if(location!=null)
+                                Log.e("Location",location.toString());
+                            else
+                                Log.e("Location","Location not found");
                             // Got last known location. In some rare situations this can be null.
                             if (location != null) {
                                 LatLng myPos = new LatLng(location.getLatitude(), location.getLongitude());
@@ -227,7 +244,18 @@ public class MyBluetoothActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicUpdate(@NotNull BluetoothPeripheral peripheral, @NotNull byte[] value, @NotNull BluetoothGattCharacteristic characteristic, @NotNull GattStatus status) {
             String str = new String(value, StandardCharsets.UTF_8); // for UTF-8 encodingbytes2
-            Log.i("CHAR UPDATE=",str);
+            Log.e("CHAR UPDATE=",str);
+            if(str.equals("Connected")) {
+                connectedEsp = true;
+            }
+            if(str.startsWith("$")) {
+                idEsp = str.substring(1);
+            }
+
+            Log.e("CHAR UPDATE=", String.valueOf(connectedEsp));
+
+
+
             /*if (status != GattStatus.SUCCESS) return;
 
             UUID characteristicUUID = characteristic.getUuid();
@@ -257,6 +285,7 @@ public class MyBluetoothActivity extends AppCompatActivity {
         @Override
         public void onConnectedPeripheral(@NotNull BluetoothPeripheral peripheral) {
             Timber.i("connected to '%s'", peripheral.getName());
+            central.stopScan();
         }
 
         @Override
@@ -274,18 +303,24 @@ public class MyBluetoothActivity extends AppCompatActivity {
         public void onDiscoveredPeripheral(@NotNull BluetoothPeripheral peripheral, @NotNull ScanResult scanResult) {
             Timber.i("Found peripheral '%s'", peripheral.getName());
             //btList.add(peripheral);
-            boolean ad=true;
-            if(peripheral!=null) {
+            boolean ad=false;
+            Log.e("Confronto",peripheral.toString());
+
+            if(peripheral!=null&&peripheral.getName()!=null&&!peripheral.getName().equals("")) {
+                ad=true;
+                int i=0;
                 for (BluetoothPeripheral b : btList) {
-                    if(b.getName()==peripheral.getName())
-                        ad=false;
+                    if (b.getName().equals(peripheral.getName())) ad = false;
+                    Log.e("Confronto",b.getName()+"    skip"+i+"    "+peripheral.getName());
+                    i++;
                 }
                 if(ad)
                     btList.add(peripheral);
             }
+            for (BluetoothPeripheral b : btList)
+            Log.e("LIST",b.getName());
             adapterr = new BtRecyclerViewAdapter(btList);
             recyclerView.setAdapter(adapterr);
-            central.stopScan();
         }
 
         @Override
@@ -305,6 +340,9 @@ public class MyBluetoothActivity extends AppCompatActivity {
             Timber.i("scanning failed with error %s", scanFailure);
 
             BluetoothAdapter.getDefaultAdapter().disable();
+
+
+            BluetoothAdapter.getDefaultAdapter().enable();
         }
     };
 
@@ -350,6 +388,30 @@ public class MyBluetoothActivity extends AppCompatActivity {
 
             }
         }
+        // invoking startLoadingDialog method
+        loadingdialog.startLoadingdialog();
+
+        Intent i = new Intent(activity, Checked.class);
+        // using handler class to set time delay methods
+        Handler handler = new Handler();
+
+        Log.e("PROVA", String.valueOf(connectedEsp));
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // after 4 seconds
+                    Log.e("what", String.valueOf(connectedEsp));
+                    i.putExtra("Result", connectedEsp);
+                    if (idEsp != null)
+                        i.putExtra("idEsp", idEsp);
+                    loadingdialog.dismissdialog();
+                    // starting finished activity
+                    startActivity(i);
+                    if(connectedEsp&&idEsp!=null)
+                        central.cancelConnection(peripheralEsp);
+            }
+
+        }, 12000); // 10 seconds
     }
 
 

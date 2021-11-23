@@ -78,7 +78,6 @@ public class WifiConnectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.wifi_list);
-
         textStatus = (TextView) findViewById(R.id.textwifiStatus);
         buttonScan = (Button) findViewById(R.id.buttonwifiScan);
         buttonScan.setOnClickListener(new View.OnClickListener() {

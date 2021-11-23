@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //set up mqtt connection
+
         registerReceiver(locationServiceStateReceiver, new IntentFilter((LocationManager.MODE_CHANGED_ACTION)));
         Intent intent = new Intent(this, MyMqttService.class);
         startService(intent);
@@ -94,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
         else
             Log.e("FirebaseUser =", auth.getUid());
 
+        SharedPreferences sharedPref = this.getSharedPreferences(auth.getUid(),Context.MODE_PRIVATE);
+        if(sharedPref.getStringSet(auth.getUid(), null)!=null)
+            Log.e("PRESOOOOOO",sharedPref.getStringSet(auth.getUid(), null).toString());
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

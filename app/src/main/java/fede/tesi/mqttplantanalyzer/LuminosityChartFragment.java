@@ -1,6 +1,7 @@
 package fede.tesi.mqttplantanalyzer;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.drawable.Drawable;
@@ -49,6 +50,9 @@ public class LuminosityChartFragment extends Fragment {
     private FirebaseAuth auth;
     Context baseContext;
 
+    String boardId;
+    SharedPreferences sharedPref;
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -65,8 +69,10 @@ public class LuminosityChartFragment extends Fragment {
         baseContext=this.getContext();
         lineChart = view.findViewById(R.id.lineChart);
         auth = FirebaseAuth.getInstance();
+        sharedPref = this.getActivity().getSharedPreferences(auth.getUid(), Context.MODE_PRIVATE);
+        boardId=sharedPref.getString("CurrentBoard","");
         mDatabase = FirebaseDatabase.getInstance("https://mqttplantanalyzer-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
-        DatabaseReference userRef = mDatabase.child(auth.getUid()).child("246f28969298");
+        DatabaseReference userRef = mDatabase.child(auth.getUid()).child(boardId);
         Query recentPostsQuery = userRef
                 .limitToLast(100);
         recentPostsQuery.addValueEventListener(new ValueEventListener() {
@@ -146,6 +152,7 @@ public class LuminosityChartFragment extends Fragment {
                 lineChart.getAxisRight().setEnabled(false);
                 lineChart.getXAxis().setDrawGridLines(false);
                 lineChart.getXAxis().setAxisMinimum(lineChart.getXAxis().getAxisMinimum()-4);
+                //lineChart.fitScreen();
                 lineChart.invalidate();
             }
 

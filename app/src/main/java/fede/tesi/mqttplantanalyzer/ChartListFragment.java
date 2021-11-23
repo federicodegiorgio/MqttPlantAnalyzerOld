@@ -89,11 +89,6 @@ public class ChartListFragment extends Fragment {
                         NavHostFragment.findNavController(ChartListFragment.this)
                                 .navigate(R.id.action_SecondFragment_to_ImageFragment);
                         break;
-                    case "Map":
-                        Intent i =new Intent(listView.getContext(),MyMapFragment.class);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        getActivity().getBaseContext().startActivity(i);
-                        break;
                     default:
                         break;
                 }

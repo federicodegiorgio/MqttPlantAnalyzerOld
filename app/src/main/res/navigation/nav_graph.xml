@@ -3,7 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/SecondFragment">
+    app:startDestination="@id/BoardSelectionFragment">
+
+    <fragment
+        android:id="@+id/BoardSelectionFragment"
+        android:name="fede.tesi.mqttplantanalyzer.BoardSelectionFragment"
+        android:label="Select Board"
+        tools:layout="@layout/fragment_board_list">
+
+        <action
+            android:id="@+id/action_BoardSelection_to_SecondFragment"
+            app:destination="@id/SecondFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/ImageFragment"
@@ -49,9 +60,6 @@
         <action
             android:id="@+id/action_SecondFragment_to_ImageFragment"
             app:destination="@id/ImageFragment" />
-        <action
-            android:id="@+id/action_SecondFragment_to_MapFragment"
-            app:destination="@id/MapFragment" />
     </fragment>
 
     <fragment
@@ -101,15 +109,5 @@
         app:destination="@id/SecondFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/MapFragment"
-        android:name="fede.tesi.mqttplantanalyzer.MapFragment"
-        android:label="Map Fragment"
-        tools:layout="@layout/fragment_map">
-
-        <action
-            android:id="@+id/action_MapFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
-    </fragment>
 
 </navigation>

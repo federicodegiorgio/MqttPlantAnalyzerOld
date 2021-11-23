@@ -1,7 +1,9 @@
 package fede.tesi.mqttplantanalyzer;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -16,6 +18,7 @@ import androidx.fragment.app.Fragment;
 
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
@@ -28,12 +31,17 @@ import java.util.List;
 
 import fede.tesi.mqttplantanalyzer.databinding.ImageFragmentBinding;
 
+
 public class ImageFragment extends Fragment {
     private ImageFragmentBinding binding;
     FirebaseStorage storage = FirebaseStorage.getInstance();
     private StorageReference storageRef;
     private List<StorageReference> listImageRef=new ArrayList<>();
     ListView listView;
+    private FirebaseAuth auth;
+
+    String boardId;
+    SharedPreferences sharedPref;
 
     @Override
     public View onCreateView(
@@ -51,9 +59,12 @@ public class ImageFragment extends Fragment {
         listView=(ListView)view.findViewById(R.id.imagesList);
         final ImageArrayAdapter adapter = new ImageArrayAdapter(this.getActivity().getBaseContext(), android.R.layout.simple_list_item_1, android.R.id.text1, listImageRef);
         listView.setAdapter(adapter);
+        auth = FirebaseAuth.getInstance();
         storageRef = storage.getReference();
+        sharedPref = this.getActivity().getSharedPreferences(auth.getUid(), Context.MODE_PRIVATE);
+        boardId=sharedPref.getString("CurrentBoard","");
         //1634133409188.JPG
-        StorageReference pathReference = storageRef.child("KSHwKdsgiNe5kgh1eKTXJZHGxxq1/246f28969298");
+        StorageReference pathReference = storageRef.child(auth.getUid()+"/"+boardId);
         pathReference.listAll()
             .addOnSuccessListener(new OnSuccessListener<ListResult>() {
                 @Override
@@ -78,7 +89,7 @@ public class ImageFragment extends Fragment {
                 Log.e("VALUE REF",value.getName());
                 StorageReference pathObjReference = storageRef.child(value.getName());
                 Intent i =new Intent(getActivity().getBaseContext(),ImageActivity.class);
-                i.putExtra("imm","KSHwKdsgiNe5kgh1eKTXJZHGxxq1/246f28969298/"+value.getName());
+                i.putExtra("imm",auth.getUid()+"/"+boardId+"/"+value.getName());
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getActivity().getBaseContext().startActivity(i);
             }
