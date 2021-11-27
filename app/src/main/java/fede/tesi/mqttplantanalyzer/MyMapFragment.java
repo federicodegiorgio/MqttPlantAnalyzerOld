@@ -95,8 +95,7 @@ public class MyMapFragment extends FragmentActivity implements OnMapReadyCallbac
                                 LatLng myPos = new LatLng(location.getLatitude(), location.getLongitude());
                                 mMap.addMarker(new MarkerOptions()
                                         .position(myPos)
-                                        .title(auth.getUid())
-                                        .snippet(boardId));
+                                        .title("You"));
                                 mMap.setMinZoomPreference(9f);
                                 mMap.setMaxZoomPreference(19f);
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myPos));
@@ -119,8 +118,7 @@ public class MyMapFragment extends FragmentActivity implements OnMapReadyCallbac
                     Log.e("boooooooooooooooooooooooooooooo",entryList.toString());
                     Marker mark=mMap.addMarker(new MarkerOptions()
                             .position(new LatLng(val.getLatitude(),val.getLongitude()))
-                            .title(val.getName())
-                            .snippet(val.getBoard()));
+                            .title("Plant"));
                     mMarkerMap.put(mark.getId(),val.getBoard());
                 }
             }
