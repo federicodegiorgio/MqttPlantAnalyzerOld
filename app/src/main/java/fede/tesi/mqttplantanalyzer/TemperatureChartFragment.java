@@ -101,7 +101,7 @@ public class TemperatureChartFragment extends Fragment {
                     lineDataSet.setDrawFilled(true);
                     if (Utils.getSDKInt() >= 18) {
                         // fill drawable only supported on api level 18 and above
-                        Drawable drawable = ContextCompat.getDrawable(baseContext, R.drawable.blue_scaled);
+                        Drawable drawable = ContextCompat.getDrawable(baseContext, R.drawable.red_scaled);
                         lineDataSet.setFillDrawable(drawable);
                     } else {
                         lineDataSet.setFillColor(Color.BLUE);

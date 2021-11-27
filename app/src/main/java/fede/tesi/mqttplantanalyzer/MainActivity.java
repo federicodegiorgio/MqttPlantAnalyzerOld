@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
         }
         else
             Log.e("FirebaseUser =", auth.getUid());
-
         SharedPreferences sharedPref = this.getSharedPreferences(auth.getUid(),Context.MODE_PRIVATE);
         if(sharedPref.getStringSet(auth.getUid(), null)!=null)
             Log.e("PRESOOOOOO",sharedPref.getStringSet(auth.getUid(), null).toString());
@@ -127,6 +126,16 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            FirebaseAuth.getInstance().signOut();
+            // Choose authentication providers
+            List<AuthUI.IdpConfig> providers = Arrays.asList(
+                    new AuthUI.IdpConfig.EmailBuilder().build());
+            Intent signInIntent = AuthUI.getInstance()
+                    .createSignInIntentBuilder()
+                    .setAvailableProviders(providers)
+                    .build();
+            auth = FirebaseAuth.getInstance();
+            signInLauncher.launch(signInIntent);
             return true;
         }
         if (id == R.id.action_bt) {

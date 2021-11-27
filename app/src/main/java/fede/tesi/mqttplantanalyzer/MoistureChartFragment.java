@@ -98,7 +98,7 @@ public class MoistureChartFragment extends Fragment {
                     lineDataSet.setDrawFilled(true);
                     if (Utils.getSDKInt() >= 18) {
                         // fill drawable only supported on api level 18 and above
-                        Drawable drawable = ContextCompat.getDrawable(baseContext, R.drawable.yellow_scaled);
+                        Drawable drawable = ContextCompat.getDrawable(baseContext, R.drawable.green_scaled);
                         lineDataSet.setFillDrawable(drawable);
                     } else {
                         lineDataSet.setFillColor(Color.BLUE);

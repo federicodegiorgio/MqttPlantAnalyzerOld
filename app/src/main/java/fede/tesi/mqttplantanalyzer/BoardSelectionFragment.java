@@ -60,8 +60,10 @@ public class BoardSelectionFragment extends Fragment{
                 boards = sharedPref.getStringSet(user.getUid(), null);
                 for (String s : boards) {
                     String myName=sharedPref.getString(s,"");
-                    provMisc.add(new Chart_Type(R.drawable.ic_baseline_brightness_high_24, myName));
-
+                    if (myName!=null)
+                    provMisc.add(new Chart_Type(R.drawable.ic_baseline_developer_board_24, myName));
+                    else
+                        provMisc.add(new Chart_Type(R.drawable.ic_baseline_developer_board_24, s));
                 }
             }
 

@@ -78,29 +78,6 @@ public class WifiConnectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.wifi_list);
-        textStatus = (TextView) findViewById(R.id.textwifiStatus);
-        buttonScan = (Button) findViewById(R.id.buttonwifiScan);
-        buttonScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                arraylist.clear();
-                wifi.startScan();
-
-                Toast.makeText(WifiConnectionActivity.this, "Scanning...." + size, Toast.LENGTH_SHORT).show();
-                try {
-                    size = size - 1;
-                    while (size >= 0) {
-                        HashMap<String, String> item = new HashMap<String, String>();
-                        item.put(ITEM_KEY, results.get(size).SSID);
-
-                        arraylist.add(item);
-                        size--;
-                        adapter.notifyDataSetChanged();
-                    }
-                } catch (Exception e) {
-                }
-            }
-        });
         lv = (ListView)findViewById(R.id.wifilist);
 
         wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -109,14 +86,14 @@ public class WifiConnectionActivity extends AppCompatActivity {
             Toast.makeText(WifiConnectionActivity.this, "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
             wifi.setWifiEnabled(true);
         }
+        Toast.makeText(WifiConnectionActivity.this, "Scanning...." + size, Toast.LENGTH_SHORT).show();
+        wifi.startScan();
         this.adapter = new SimpleAdapter(WifiConnectionActivity.this , arraylist, R.layout.row, new String[] { ITEM_KEY }, new int[] { R.id.listwifi_value });
         lv.setAdapter(this.adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String item = (String) arraylist.get(i).get(ITEM_KEY);
-                Toast.makeText(WifiConnectionActivity.this,"You selected : " + item,Toast.LENGTH_SHORT).show();
-                ssid_Text=item;
                 AlertDialog.Builder builder = new AlertDialog.Builder(WifiConnectionActivity.this);
                 builder.setTitle("Password per "+ssid_Text);
 
@@ -156,6 +133,24 @@ public class WifiConnectionActivity extends AppCompatActivity {
             {
                 results = wifi.getScanResults();
                 size = results.size();
+                arraylist.clear();
+                try {
+                    size = size - 1;
+                    while (size >= 0) {
+                        HashMap<String, String> item = new HashMap<String, String>();
+                        if(results.get(size).SSID!=null && !results.get(size).SSID.equals("")) {
+                            if(!item.containsValue(results.get(size).SSID)) {
+                                item.put(ITEM_KEY, results.get(size).SSID);
+
+                                arraylist.add(item);
+                            }
+                        }
+                        size--;
+                        adapter.notifyDataSetChanged();
+                    }
+                } catch (Exception e) {
+                }
+                adapter.notifyDataSetChanged();
             }
         }, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 

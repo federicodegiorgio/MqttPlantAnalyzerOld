@@ -2,11 +2,14 @@ package fede.tesi.mqttplantanalyzer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -17,9 +20,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -28,17 +33,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.ListResult;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MyMapFragment extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private DatabaseReference mDatabase;
-    List<LatLangModel> entryList = new ArrayList<>();
+    Map<String,LatLangModel> entryList = new HashMap<>();
     private FirebaseAuth auth;
+    Map<String, String> mMarkerMap = new HashMap<>();
 
     String boardId;
     SharedPreferences sharedPref;
@@ -75,8 +85,6 @@ public class MyMapFragment extends FragmentActivity implements OnMapReadyCallbac
         //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mMap = googleMap;
 
-        mMap.setInfoWindowAdapter(new MyInfoWindowAdapter(this));
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -89,7 +97,7 @@ public class MyMapFragment extends FragmentActivity implements OnMapReadyCallbac
                                         .position(myPos)
                                         .title(auth.getUid())
                                         .snippet(boardId));
-                                mMap.setMinZoomPreference(11f);
+                                mMap.setMinZoomPreference(9f);
                                 mMap.setMaxZoomPreference(19f);
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myPos));
 
@@ -107,17 +115,32 @@ public class MyMapFragment extends FragmentActivity implements OnMapReadyCallbac
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     LatLangModel val = snapshot.getValue(LatLangModel.class);
                     Log.e("Data CHANGE", "Value is: " + val.getLatitude());
-                    entryList.add( val );
+                    entryList.put(val.getBoard(), val );
+                    Log.e("boooooooooooooooooooooooooooooo",entryList.toString());
                     Marker mark=mMap.addMarker(new MarkerOptions()
                             .position(new LatLng(val.getLatitude(),val.getLongitude()))
                             .title(val.getName())
                             .snippet(val.getBoard()));
+                    mMarkerMap.put(mark.getId(),val.getBoard());
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
+            }
+        });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                String boardName = mMarkerMap.get(marker.getId());
+                String userName=entryList.get(boardName).getName();
+                Log.e(boardName,boardId);
+                    Intent intent = new Intent(MyMapFragment.this, InfoUserActivity.class);
+                    intent.putExtra("user", userName);
+                    intent.putExtra("board", boardName);
+                    startActivity(intent);
+                return false;
             }
         });
     }
