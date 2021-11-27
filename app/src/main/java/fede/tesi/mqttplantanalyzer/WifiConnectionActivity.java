@@ -86,7 +86,7 @@ public class WifiConnectionActivity extends AppCompatActivity {
             Toast.makeText(WifiConnectionActivity.this, "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
             wifi.setWifiEnabled(true);
         }
-        Toast.makeText(WifiConnectionActivity.this, "Scanning...." + size, Toast.LENGTH_SHORT).show();
+        Toast.makeText(WifiConnectionActivity.this, "Scanning...." , Toast.LENGTH_SHORT).show();
         wifi.startScan();
         this.adapter = new SimpleAdapter(WifiConnectionActivity.this , arraylist, R.layout.row, new String[] { ITEM_KEY }, new int[] { R.id.listwifi_value });
         lv.setAdapter(this.adapter);
@@ -94,6 +94,7 @@ public class WifiConnectionActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String item = (String) arraylist.get(i).get(ITEM_KEY);
+                ssid_Text= item;
                 AlertDialog.Builder builder = new AlertDialog.Builder(WifiConnectionActivity.this);
                 builder.setTitle("Password per "+ssid_Text);
 
