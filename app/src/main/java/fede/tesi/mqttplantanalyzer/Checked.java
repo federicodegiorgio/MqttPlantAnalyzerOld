@@ -161,7 +161,7 @@ public class Checked extends AppCompatActivity {
                             latlang.setLatitude(latitude);
                             latlang.setLongitude(longitude);
                             latlang.setName(user.getUid());
-                            mDatabase.child("publicLocation").child(user.getUid()).setValue(latlang);
+                            mDatabase.child("publicLocation").child(espId).setValue(latlang);
                         }
                         dialog.dismiss();
                     }

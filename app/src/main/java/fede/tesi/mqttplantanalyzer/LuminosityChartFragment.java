@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -49,6 +50,7 @@ public class LuminosityChartFragment extends Fragment {
     private DatabaseReference mDatabase;
     private FirebaseAuth auth;
     Context baseContext;
+    boolean all=false;
 
     String boardId;
     SharedPreferences sharedPref;
@@ -75,7 +77,9 @@ public class LuminosityChartFragment extends Fragment {
         DatabaseReference userRef = mDatabase.child(auth.getUid()).child(boardId);
         Query recentPostsQuery = userRef
                 .limitToLast(100);
-        recentPostsQuery.addValueEventListener(new ValueEventListener() {
+        Query allPostsQuery = userRef
+                .limitToLast(10000);
+        ValueEventListener valueEventListener= new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
@@ -147,11 +151,11 @@ public class LuminosityChartFragment extends Fragment {
                 lineChart.setVisibleYRangeMaximum(3600f,lineChart.getAxisLeft().getAxisDependency());
                 lineChart.setVisibleYRangeMinimum(60f,lineChart.getAxisLeft().getAxisDependency());
                 lineChart.setDrawGridBackground(false);
-                lineChart.getAxisLeft().setDrawGridLines(true);
+                lineChart.getAxisLeft().setDrawGridLines(false);
                 lineChart.getAxisLeft().setDrawAxisLine(false);
                 lineChart.getAxisRight().setEnabled(false);
                 lineChart.getXAxis().setDrawGridLines(false);
-                lineChart.getXAxis().setAxisMinimum(lineChart.getXAxis().getAxisMinimum()-4);
+                lineChart.getXAxis().setAxisMinimum(lineChart.getXAxis().getAxisMinimum());
                 //lineChart.fitScreen();
                 lineChart.invalidate();
             }
@@ -162,8 +166,26 @@ public class LuminosityChartFragment extends Fragment {
                 Log.e("Data ERROR", "Failed to read value.", error.toException());
             }
 
+        };
+        recentPostsQuery.addValueEventListener(valueEventListener);
+        Button querybtn = view.findViewById(R.id.querybtn);
+        querybtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(all==false) {
+                    recentPostsQuery.removeEventListener(valueEventListener);
+                    allPostsQuery.addValueEventListener(valueEventListener);
+                    querybtn.setText("Last 100");
+                    all=true;
+                }
+                else{
+                    allPostsQuery.removeEventListener(valueEventListener);
+                    recentPostsQuery.addValueEventListener(valueEventListener);
+                    querybtn.setText("All results");
+                    all=false;
+                }
+            }
         });
-
 
 
     }

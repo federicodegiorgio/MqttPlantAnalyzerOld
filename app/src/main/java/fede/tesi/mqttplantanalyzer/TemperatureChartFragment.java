@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -51,6 +52,8 @@ public class TemperatureChartFragment extends Fragment {
     String boardId;
     SharedPreferences sharedPref;
     long timestamp;
+    boolean all=false;
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -76,7 +79,9 @@ public class TemperatureChartFragment extends Fragment {
         if(boardId!=null) {
             DatabaseReference userRef = mDatabase.child(auth.getUid()).child(boardId);
             Query recentPostsQuery = userRef.orderByChild("timestamp").startAt(timestamp-86400000).endAt(timestamp);
-            recentPostsQuery.addValueEventListener(new ValueEventListener() {
+            Query allPostsQuery = userRef
+                    .limitToLast(10000);
+            ValueEventListener valueEventListener= new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     // whenever data at this location is updated.
@@ -163,6 +168,25 @@ public class TemperatureChartFragment extends Fragment {
                 public void onCancelled(DatabaseError error) {
                     // Failed to read value
                     Log.e("Data ERROR", "Failed to read value.", error.toException());
+                }
+            };
+            recentPostsQuery.addValueEventListener(valueEventListener);
+            Button querybtn = view.findViewById(R.id.querybtn);
+            querybtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(all==false) {
+                        recentPostsQuery.removeEventListener(valueEventListener);
+                        allPostsQuery.addValueEventListener(valueEventListener);
+                        querybtn.setText("Last 100");
+                        all=true;
+                    }
+                    else{
+                        allPostsQuery.removeEventListener(valueEventListener);
+                        recentPostsQuery.addValueEventListener(valueEventListener);
+                        querybtn.setText("All results");
+                        all=false;
+                    }
                 }
             });
         }
